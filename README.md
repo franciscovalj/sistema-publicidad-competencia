@@ -97,7 +97,8 @@ respaldas cualquier archivo importante.
 
 ## Licencia
 
-MIT. Úsalo, modifícalo y véndelo si quieres. Si te sirve, me gusta saberlo.
+MIT. Úsalo, modifícalo y véndelo si quieres. Si te sirve, me gusta saberlo — y una
+estrella en este repositorio ayuda a que le llegue a más dueños de negocio.
 
 El informe sale de fábrica con la firma de quien construyó el sistema y su LinkedIn. La
 licencia te deja cambiarla; se agradece dejarla.
