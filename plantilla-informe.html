@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="es">
+<!--
+═══════════════════════════════════════════════════════════════════════════════
+PLANTILLA DEL INFORME · cómo se rellena (instrucciones para Claude)
+
+1. COPIA este archivo (por ejemplo a corridas/informe-AAAA-MM-DD.html). La
+   plantilla original no se toca.
+2. Reemplaza cada marcador {{ASI}} con el dato real. No queda ningún {{}} vivo.
+3. LA REGLA DE ORO DE LA PAGINACIÓN: cada <div class="pagina"> ES una página A4.
+   El contenido de una página jamás se pasa a la siguiente solo: si no cabe, se
+   recorta o se crea otra página. Capacidades probadas:
+   - Página 2: la fila de cifras + el veredicto + DOS secciones con tablas de
+     hasta 3-4 filas. Más filas = mover la sección 2 a la página 3.
+   - Página 3: la mezcla (2 gráficas + franja) + el tríptico de huecos.
+   - Página del anexo: MÁXIMO 4 fichas de anuncio. Con más creativos, duplica
+     el bloque completo de la página de continuación tantas veces como haga falta.
+   - La página del RADAR solo existe desde la segunda corrida; en la primera se
+     elimina entera.
+4. Los textos de los anuncios van COMPLETOS en el anexo, jamás recortados.
+5. Todo lo que no aplique (una sección sin datos) se elimina entero, con su
+   página si queda vacía. Nunca se deja un encabezado sin contenido.
+6. La firma, la marca y los enlaces del autor NO se tocan: son parte del sistema.
+7. Al terminar: python3 scripts/renderizar_pdf.py <archivo>.html <archivo>.pdf
+   y después LEER el PDF página por página verificando: nada pegado al borde
+   superior, ninguna sección cortada, ningún {{marcador}} vivo, los enlaces del
+   anexo apuntan al anuncio correcto. Si algo falla, se corrige aquí y se
+   vuelve a renderizar. El informe no está listo hasta pasar esa revisión.
+═══════════════════════════════════════════════════════════════════════════════
+-->
+<head>
+<meta charset="utf-8">
+<title>La publicidad de la competencia de {{EMPRESA}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  /* Sistema visual del informe. NO editar: aquí viven las correcciones finas
+     (alineación por línea base, compensación del espaciado de letras, alturas
+     fijas, arquitectura de páginas). Rellenar el HTML basta. */
+  :root {
+    --page:   #fdfbf2;
+    --page-2: #f6f1de;
+    --ink:    #100c06;
+    --ink-2:  #3a2f22;
+    --ink-3:  #6a6a64;
+    --rule:   #d6cdb0;
+    --oro:    #8e7634;
+    --burdeos:#5a3a3a;
+    --prusia: #2a3a4a;
+    --prusia-2:#5a6b7d;
+    --prusia-3:#93a1af;
+    --prusia-4:#c6cdd5;
+    --serif: "Instrument Serif", Georgia, serif;
+    --sans:  "Hanken Grotesk", -apple-system, "Segoe UI", sans-serif;
+  }
+  @page { size: A4; margin: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { font-family: var(--sans); color: var(--ink); background: var(--page);
+         font-size: 9.8pt; line-height: 1.55; }
+  a { color: inherit; text-decoration: none; }
+  em.acc { font-family: var(--serif); font-style: italic; color: var(--oro); }
+
+  .pagina { height: 296.5mm; padding: 16mm 17mm 26mm; position: relative;
+            break-after: page; overflow: hidden; }
+  .pagina.ultima { break-after: auto; }
+  .pagina > :first-child { margin-top: 0 !important; }
+  .pie { position: absolute; bottom: 9mm; left: 17mm; right: 17mm;
+         padding-top: 6px; border-top: 1px solid var(--rule);
+         font-size: 6.8pt; letter-spacing: .16em; text-transform: uppercase;
+         color: var(--ink-3); display: grid; grid-template-columns: 1fr auto 1fr; }
+  .pie > :nth-child(2) { text-align: center; }
+  .pie > :nth-child(3) { text-align: right; }
+  .pie b { color: var(--oro); font-weight: 700; }
+
+  .portada-marco { position: absolute; top: 14mm; bottom: 20mm; left: 11mm; right: 11mm;
+                   border-left: 1px solid var(--rule); border-right: 1px solid var(--rule); }
+  .portada-contenido { position: relative; height: 100%; display: flex;
+                       flex-direction: column; align-items: center; text-align: center; }
+  .fichas { position: absolute; top: 0; left: 0; text-align: left;
+            display: grid; grid-template-columns: auto auto; gap: 5px 12px;
+            align-items: baseline; }
+  .fichas span { font-size: 6.8pt; letter-spacing: .22em; color: var(--ink-3);
+                 text-transform: uppercase; line-height: 1; }
+  .fichas b { font-size: 7.6pt; letter-spacing: .1em; font-weight: 600; line-height: 1; }
+  .fichas i { font-family: var(--serif); font-size: 9.5pt; color: var(--oro); }
+  .folio { position: absolute; top: 0; right: 0; text-align: right; }
+  .folio span { display: block; font-size: 7pt; letter-spacing: .22em;
+                color: var(--ink-3); text-transform: uppercase; }
+  .folio b { font-family: var(--serif); font-style: italic; font-weight: 400;
+             font-size: 17pt; color: var(--oro); }
+  .marca { margin-top: 52mm; font-size: 13.5pt; letter-spacing: .48em;
+           padding-left: .48em; color: var(--oro); font-family: var(--serif); }
+  .raya { width: 14mm; border-top: 1px solid var(--ink-2); margin: 12mm auto 7mm; }
+  .kicker-portada { font-size: 8pt; letter-spacing: .3em; color: var(--oro);
+                    text-transform: uppercase; font-weight: 600; }
+  h1 { font-family: var(--serif); font-weight: 400; font-size: 38pt;
+       line-height: 1.04; margin-top: 6mm; }
+  .bajada { font-family: var(--serif); font-style: italic; font-size: 13.5pt;
+            color: var(--ink-2); margin-top: 6mm; max-width: 125mm; line-height: 1.4; }
+  .raya2 { width: 8mm; border-top: 1px solid var(--ink-2); margin: 9mm auto 6mm; }
+  .tipo span { display: block; font-size: 7.5pt; letter-spacing: .3em;
+               color: var(--ink-3); text-transform: uppercase; }
+  .tipo b { font-family: var(--serif); font-weight: 400; font-size: 13pt; }
+  .capas { position: absolute; bottom: 12mm; right: 4mm; width: 34mm; text-align: center; }
+  .capas div { height: 3.2mm; margin: 1.4mm auto; background: var(--page-2);
+               border: 1px solid var(--rule); }
+  .capas .c1 { width: 40%; }
+  .capas .c2 { width: 58%; }
+  .capas .c3 { width: 74%; background: var(--oro); border-color: var(--oro); }
+  .capas .c4 { width: 100%; }
+  .capas span { display: block; margin-top: 2mm; font-family: var(--serif);
+                font-style: italic; font-size: 8.5pt; color: var(--oro); }
+  .fecha-portada { position: absolute; bottom: 12mm; left: 4mm; text-align: left;
+                   font-size: 7pt; letter-spacing: .18em; text-transform: uppercase;
+                   color: var(--ink-3); line-height: 1.7; }
+
+  .seccion { display: grid; grid-template-columns: 15mm 1fr; margin: 10mm 0 4mm; }
+  .seccion .numeral { font-family: var(--serif); font-style: italic; font-weight: 400;
+                      font-size: 26pt; color: var(--oro); line-height: .9; }
+  .seccion .kicker { display: flex; align-items: center; gap: 6px; font-size: 7.5pt;
+                     letter-spacing: .22em; text-transform: uppercase; color: var(--ink-2);
+                     font-weight: 600; }
+  .seccion .kicker::before { content: ""; width: 9mm; border-top: 1px solid var(--oro); }
+  .seccion h2 { font-family: var(--serif); font-weight: 400; font-size: 17pt;
+                line-height: 1.1; margin: 1.5px 0 4px; }
+  .seccion .cuerpo { border-bottom: 1.5px solid var(--ink); }
+
+  p { margin: 6px 0; }
+  .metodo { font-size: 8.4pt; color: var(--ink-3); font-style: italic; margin: 2px 0 8px; }
+  .lede { font-family: var(--serif); font-style: italic; font-size: 12.5pt;
+          line-height: 1.45; color: var(--ink-2); margin: 7mm 0 0; }
+  .lede strong { color: var(--ink); font-weight: 400; }
+
+  .cifras { display: flex; margin: 0; border-top: 1px solid var(--rule);
+            border-bottom: 1px solid var(--rule); }
+  .cifra { flex: 1; padding: 10px 13px 11px; }
+  .cifra + .cifra { border-left: 1px solid var(--rule); }
+  .cifra b { display: block; font-family: var(--serif); font-weight: 400; font-size: 20pt;
+             line-height: 1.05; }
+  .cifra span { display: block; margin-top: 2px; font-size: 7pt; letter-spacing: .12em;
+                text-transform: uppercase; color: var(--oro); font-weight: 600; }
+
+  table { width: 100%; border-collapse: collapse; margin: 7px 0 4px; font-size: 9.2pt; }
+  th { text-align: left; font-size: 7.2pt; letter-spacing: .12em; text-transform: uppercase;
+       color: var(--oro); font-weight: 600; padding: 4px 10px 5px 0;
+       border-bottom: 1.5px solid var(--ink); }
+  td { padding: 6.5px 10px 6.5px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr > :last-child { padding-right: 0; }
+  .n { text-align: right; font-variant-numeric: tabular-nums; }
+  th.n span { margin-right: -.12em; }
+  td.dias { width: 86px; }
+  td.dias b { display: block; font-family: var(--serif); font-weight: 400; font-size: 15pt;
+              line-height: 1.05; }
+  td.dias i { display: block; height: 3.5px; background: var(--prusia); margin-top: 3px; }
+  .cita { color: var(--ink-2); font-style: italic; }
+
+  .rotulo { font-size: 7.4pt; letter-spacing: .16em; text-transform: uppercase;
+            color: var(--oro); font-weight: 700; margin-bottom: 5px; }
+  .compo { margin: 6mm 0 0; }
+  .barra-compo { display: flex; gap: 2px; height: 7mm; }
+  .barra-compo .s1 { background: var(--prusia); }
+  .barra-compo .s2 { background: var(--prusia-2); }
+  .barra-compo .s3 { background: var(--prusia-3); }
+  .barra-compo .s4 { background: var(--prusia-4); }
+  .leyenda-compo { display: flex; gap: 2px; margin-top: 4px; }
+  .leyenda-compo div { font-size: 7.6pt; color: var(--ink-2); line-height: 1.3; }
+  .leyenda-compo b { display: block; font-weight: 600; color: var(--ink); }
+
+  .barras-lista { margin: 7mm 0 0; }
+  .barras-lista .fila { display: grid; grid-template-columns: 32mm 1fr 8mm;
+                        align-items: center; gap: 8px; margin: 4px 0; }
+  .barras-lista .fila span { font-size: 8.6pt; }
+  .barras-lista .fila i { display: block; height: 3.2mm; background: var(--prusia); }
+  .barras-lista .fila b { font-family: var(--serif); font-weight: 400; font-size: 11pt;
+                          text-align: right; }
+  .barras-lista .cero span { color: var(--ink-3); }
+  .barras-lista .cero i { background: none; border-left: 1px solid var(--rule); height: 3.2mm; }
+  .barras-lista .cero b { color: var(--ink-3); font-size: 9.5pt; }
+
+  .franja { display: flex; justify-content: space-between; align-items: flex-end; gap: 18px;
+            border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+            padding: 8px 0 9px; margin: 7mm 0 0; }
+  .franja .lectura { max-width: 96mm; }
+  .franja .lectura p { margin: 0; font-size: 8.8pt; }
+  .franja .hechos { display: flex; gap: 16px; text-align: left; white-space: nowrap; }
+  .franja .hechos span { display: block; font-size: 6.8pt; letter-spacing: .18em;
+                         text-transform: uppercase; color: var(--ink-3); }
+  .franja .hechos b { font-size: 8.8pt; font-weight: 600; }
+
+  .tripico { display: flex; gap: 4mm; margin: 4mm 0 0; }
+  .hueco { flex: 1; border: 1px solid var(--rule); padding: 10px 12px 12px; }
+  .hueco .muestra { background: var(--page-2); padding: 8px 10px; margin-bottom: 8px;
+                    font-family: var(--serif); font-style: italic; font-size: 9.5pt;
+                    color: var(--ink-2); height: 17mm; display: flex; align-items: center; }
+  .hueco h3 { font-size: 9.3pt; font-weight: 700; margin-bottom: 2px; }
+  .hueco p { margin: 0; font-size: 8.3pt; color: var(--ink-2); }
+  .hueco .cuenta { font-family: var(--serif); font-style: italic; color: var(--oro);
+                   font-size: 9pt; }
+
+  ul { margin: 6px 0 6px 15px; }
+  ul li { margin: 5px 0; }
+  ul li::marker { color: var(--oro); }
+
+  .caja { background: var(--page-2); border: 1px solid var(--rule);
+          padding: 10px 14px 11px; margin: 4mm 0; }
+  .caja .rotulo { margin-bottom: 3px; }
+  .caja.alerta .rotulo { color: var(--burdeos); }
+  .caja.alerta { border-color: var(--burdeos); }
+  .caja .contexto { font-family: var(--serif); font-style: italic; font-size: 9.5pt;
+                    color: var(--ink-3); margin-bottom: 4px; }
+  .caja p { margin: 3px 0; font-size: 9.2pt; }
+
+  .ficha-anuncio { display: grid; grid-template-columns: 24mm 1fr; gap: 0 7mm;
+                   padding: 4.2mm 0; border-bottom: 1px solid var(--rule); }
+  .ficha-anuncio.ultima-ficha { border-bottom: none; }
+  .fa-dias b { display: block; font-family: var(--serif); font-weight: 400;
+               font-size: 17pt; line-height: 1; }
+  .fa-dias b small { font-size: 9pt; }
+  .fa-dias .fa-estado { display: block; margin-top: 3px; font-size: 6.6pt;
+                        white-space: nowrap; letter-spacing: .12em;
+                        text-transform: uppercase; color: var(--ink-3); line-height: 1.6; }
+  .fa-cab { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; }
+  .fa-cab b { font-size: 10pt; font-weight: 700; }
+  .fa-cab span { font-size: 6.8pt; letter-spacing: .14em; text-transform: uppercase;
+                 color: var(--ink-3); }
+  .fa-texto { font-family: var(--serif); font-style: italic; font-size: 10pt;
+              line-height: 1.4; color: var(--ink-2); margin: 4px 0 5px; }
+  .fa-enlaces { font-size: 8pt; color: var(--ink-3); }
+  .fa-enlaces a { color: var(--oro); font-weight: 600; }
+  .fa-nota { font-family: var(--serif); font-style: italic; font-size: 9pt;
+             color: var(--oro); }
+  .anexo-cont { font-size: 7.5pt; letter-spacing: .22em; text-transform: uppercase;
+                color: var(--ink-3); font-weight: 600; padding-bottom: 4px;
+                border-bottom: 1.5px solid var(--ink); margin-bottom: 2mm; }
+
+  .cierre-kicker { display: flex; align-items: center; gap: 6px; font-size: 7.5pt;
+                   letter-spacing: .22em; text-transform: uppercase; color: var(--ink-2);
+                   font-weight: 600; }
+  .cierre-kicker::before { content: ""; width: 9mm; border-top: 1px solid var(--oro); }
+  .cierre-titulo { font-family: var(--serif); font-weight: 400; font-size: 26pt;
+                   line-height: 1.15; margin: 5mm 0 10mm; max-width: 150mm; }
+  .capas-cierre { margin: 12mm 0; }
+  .capas-cierre div { height: 3.2mm; margin: 1.4mm 0; background: var(--page-2);
+                      border: 1px solid var(--rule); }
+
+  .firma { padding: 13px 16px; background: var(--page-2);
+           border-top: 2px solid var(--ink); display: flex;
+           justify-content: space-between; align-items: center; gap: 16px; }
+  .firma .quien b { font-family: var(--serif); font-weight: 400; font-size: 13.5pt; }
+  .firma .quien span { display: block; font-size: 8.3pt; color: var(--ink-3); margin-top: 1px; }
+  .firma .enlace { text-align: right; font-size: 9pt; font-weight: 600; color: var(--oro);
+                   white-space: nowrap; }
+  .firma .enlace small { display: block; font-weight: 400; font-size: 7.5pt;
+                         color: var(--ink-3); letter-spacing: .06em; }
+</style>
+</head>
+<body>
+
+<!-- ═══ PÁGINA 1 · PORTADA ═══ -->
+<div class="pagina">
+  <div class="portada-marco"></div>
+  <div class="portada-contenido">
+    <div class="fichas">
+      <span>Empresa</span><b>{{EMPRESA}} · {{EMPRESA_URL}}</b>
+      <span>Corrida</span><b>{{NUMERO_CORRIDA}} <i>· {{FECHA_LARGA}}</i></b>
+      <span>Costo</span><b>US${{COSTO}} <i>· {{N_ANUNCIOS_LEIDOS}} anuncios leídos</i></b>
+    </div>
+    <div class="folio"><span>Informe</span><b>{{NUMERO_CORRIDA_DOS_DIGITOS}}</b></div>
+    <div class="marca">F R A N C I S C O&nbsp;&nbsp;&nbsp;&nbsp;V A L</div>
+    <div class="raya"></div>
+    <div class="kicker-portada">Inteligencia de competencia · {{AÑO}}</div>
+    <h1>La publicidad de la<br>competencia de <em class="acc">{{EMPRESA}}</em></h1>
+    <div class="bajada">Qué están pagando tus competidores en Facebook e Instagram,
+    qué sostienen hace meses, y el ángulo que nadie está usando</div>
+    <div class="raya2"></div>
+    <div class="tipo"><span>Tipo</span><b>INFORME DE INTELIGENCIA · CORRIDA {{NUMERO_CORRIDA}}</b></div>
+    <div class="fecha-portada">Uso del dueño ·<br>se genera con un sistema regalado</div>
+    <div class="capas">
+      <div class="c1"></div><div class="c2"></div><div class="c3"></div><div class="c4"></div>
+      <span>lo que sostiene el gasto</span>
+    </div>
+  </div>
+  <div class="pie">
+    <span>Francisco Val</span>
+    <span>La publicidad de la competencia de {{EMPRESA}}</span>
+    <span><a href="https://www.linkedin.com/in/franciscoval"><b>linkedin.com/in/franciscoval</b></a></span>
+  </div>
+</div>
+
+<!-- ═══ PÁGINA 2 · VEREDICTO Y PRIORIDADES ═══
+     Capacidad: cifras + veredicto + DOS secciones con tablas de 3-4 filas. -->
+<div class="pagina">
+  <div class="cifras">
+    <!-- 4 cifras. Las de siempre: competidores con anuncios / creativos únicos /
+         % duplicados / días de la pieza más sostenida. -->
+    <div class="cifra"><b>{{CIFRA_1}}</b><span>{{CIFRA_1_ROTULO}}</span></div>
+    <div class="cifra"><b>{{CIFRA_2}}</b><span>{{CIFRA_2_ROTULO}}</span></div>
+    <div class="cifra"><b>{{CIFRA_3}}</b><span>{{CIFRA_3_ROTULO}}</span></div>
+    <div class="cifra"><b>{{CIFRA_4}}</b><span>{{CIFRA_4_ROTULO}}</span></div>
+  </div>
+
+  <!-- El veredicto: 3-5 líneas, lo que el dueño haría con esto. Lo más importante
+       en <strong>. Prohibido prometer rendimiento. -->
+  <p class="lede">{{VEREDICTO}}</p>
+
+  <div class="seccion"><div class="numeral">1</div><div class="cuerpo">
+    <div class="kicker">Prioridad</div>
+    <h2>Para mirar <em class="acc">primero</em></h2>
+  </div></div>
+  <p class="metodo">Activos hace 45 o más días y sin variantes en testeo. Si alguien
+  sostiene el gasto en el mismo creativo por meses, algo está viendo. Prioriza qué
+  estudiar; no prueba que funcione: ese dato no es público.</p>
+  <table>
+    <tr><th>días corriendo</th><th>anunciante</th><th>qué es</th></tr>
+    <!-- Una fila por creativo veterano, máximo 4. La barra: width proporcional al
+         de más días (el mayor = 100%). -->
+    <tr>
+      <td class="dias"><b>{{DIAS}}</b><i style="width:{{PORCENTAJE}}%"></i></td>
+      <td>{{ANUNCIANTE}}</td>
+      <td><span class="cita">"{{TEXTO_CORTO}}"</span></td>
+    </tr>
+  </table>
+
+  <div class="seccion"><div class="numeral">2</div><div class="cuerpo">
+    <div class="kicker">Comportamiento por marca</div>
+    <h2>Quién testea y quién <em class="acc">escala</em></h2>
+  </div></div>
+  <table>
+    <tr><th>anunciante</th><th class="n"><span>creativos</span></th>
+        <th class="n"><span>anuncios</span></th>
+        <th class="n"><span>mediana de días</span></th></tr>
+    <!-- Una fila por anunciante, ordenados por creativos. -->
+    <tr><td>{{ANUNCIANTE}}</td><td class="n">{{N}}</td><td class="n">{{N}}</td>
+        <td class="n">{{N}}</td></tr>
+  </table>
+  <p>{{LECTURA_DE_LA_TABLA: 2-4 líneas — quién escala con duplicados, quién sostiene,
+  quién casi no está. Solo hechos de la corrida.}}</p>
+  <div class="pie">
+    <span>Francisco Val</span>
+    <span>La publicidad de la competencia de {{EMPRESA}}</span>
+    <span><a href="https://www.linkedin.com/in/franciscoval"><b>linkedin.com/in/franciscoval</b></a></span>
+  </div>
+</div>
+
+<!-- ═══ PÁGINA OPCIONAL · EL RADAR ═══
+     SOLO existe desde la SEGUNDA corrida (necesita una anterior para comparar).
+     En la primera corrida: ELIMINAR esta página entera.
+     Máximo ~6 filas por tabla; con más, priorizar por anunciante y decir cuántos quedaron
+     fuera. -->
+<div class="pagina">
+  <div class="seccion"><div class="numeral">R</div><div class="cuerpo">
+    <div class="kicker">Qué cambió desde la corrida anterior</div>
+    <h2>El <em class="acc">radar</em></h2>
+  </div></div>
+  <p class="metodo">Comparación entre la corrida del {{FECHA_CORRIDA_ANTERIOR}} y la de hoy.
+  Es la sección más accionable del informe, y solo existe porque se guardó la corrida
+  anterior.</p>
+
+  <div class="rotulo" style="margin-top:4mm">Nuevos · lo que acaban de lanzar ({{N}})</div>
+  <table>
+    <tr><th>anunciante</th><th>qué dice</th></tr>
+    <tr><td>{{ANUNCIANTE}}</td><td><span class="cita">"{{TEXTO_CORTO}}"</span></td></tr>
+  </table>
+
+  <div class="rotulo" style="margin-top:6mm">Desaparecidos · lo que apagaron o murió ({{N}})</div>
+  <table>
+    <tr><th>anunciante</th><th>qué decía</th></tr>
+    <tr><td>{{ANUNCIANTE}}</td><td><span class="cita">"{{TEXTO_CORTO}}"</span></td></tr>
+  </table>
+
+  <div class="franja">
+    <div class="lectura">
+      <div class="rotulo">La lectura</div>
+      <p>{{QUE_SIGNIFICA_EL_MOVIMIENTO: un lanzamiento, un pivote, una liquidación que
+      murió. Solo hechos.}}</p>
+    </div>
+    <div class="hechos">
+      <div><span>Nuevos</span><b>{{N}}</b></div>
+      <div><span>Desaparecidos</span><b>{{N}}</b></div>
+      <div><span>Sobreviven</span><b>{{N}}</b></div>
+    </div>
+  </div>
+  <div class="pie">
+    <span>Francisco Val</span>
+    <span>La publicidad de la competencia de {{EMPRESA}}</span>
+    <span><a href="https://www.linkedin.com/in/franciscoval"><b>linkedin.com/in/franciscoval</b></a></span>
+  </div>
+</div>
+
+<!-- ═══ PÁGINA 3 · LA MEZCLA Y LOS HUECOS ═══ -->
+<div class="pagina">
+  <div class="seccion"><div class="numeral">3</div><div class="cuerpo">
+    <div class="kicker">La mezcla</div>
+    <h2>Qué usa el <em class="acc">rubro</em></h2>
+  </div></div>
+
+  <div class="compo">
+    <div class="rotulo">Formato de los {{N_CREATIVOS}} creativos</div>
+    <!-- Segmentos de mayor a menor; los width suman 100. Con más de 4 formatos,
+         los menores se agrupan en "otros". -->
+    <div class="barra-compo">
+      <div class="s1" style="width:{{PCT}}%"></div>
+      <div class="s2" style="width:{{PCT}}%"></div>
+      <div class="s3" style="width:{{PCT}}%"></div>
+      <div class="s4" style="width:{{PCT}}%"></div>
+    </div>
+    <div class="leyenda-compo">
+      <div style="width:{{PCT}}%"><b>{{formato}} · {{N}}</b>{{descripcion breve u omitir}}</div>
+      <div style="width:{{PCT}}%"><b>{{formato}} · {{N}}</b></div>
+      <div style="width:{{PCT}}%"><b>{{formato}} · {{N}}</b></div>
+      <div style="width:{{PCT}}%"><b>{{formato}} · {{N}}</b></div>
+    </div>
+  </div>
+
+  <div class="barras-lista">
+    <div class="rotulo">Con qué ángulo abren</div>
+    <!-- Una fila por ángulo CON casos (barra proporcional al mayor) y una fila
+         class="cero" por cada ángulo ausente que valga la pena mostrar. Los ceros
+         son la sección más valiosa: no omitirlos. -->
+    <div class="fila"><span>{{angulo}}</span><i style="width:{{PCT}}%"></i><b>{{N}}</b></div>
+    <div class="fila cero"><span>{{angulo ausente}}</span><i></i><b>0</b></div>
+  </div>
+
+  <div class="franja">
+    <div class="lectura">
+      <div class="rotulo">La lectura</div>
+      <p>{{UNA_LINEA: qué significa la mezcla, sin prometer nada.}}</p>
+    </div>
+    <div class="hechos">
+      <div><span>Destino del clic</span><b>{{DATO}}</b></div>
+      <div><span>Con promoción</span><b>{{N}} de {{N_CREATIVOS}}</b></div>
+      <div><span>Declaran IA</span><b>{{N}} de {{N_CREATIVOS}}</b></div>
+    </div>
+  </div>
+
+  <div class="seccion"><div class="numeral">4</div><div class="cuerpo">
+    <div class="kicker">Espacios sin ocupar</div>
+    <h2>Los <em class="acc">huecos</em></h2>
+  </div></div>
+  <p class="metodo">Un hueco puede ser "nadie lo probó" o "alguien lo probó y no le
+  resultó"; con datos públicos no se distingue. Es espacio para testear barato, no una
+  oportunidad probada. Las muestras en cursiva son inventadas, para ilustrar el ángulo.</p>
+  <div class="tripico">
+    <!-- Exactamente 3 huecos. La muestra es una frase INVENTADA que ilustra el
+         ángulo (queda declarado arriba). El conteo real va en .cuenta. -->
+    <div class="hueco">
+      <div class="muestra">"{{FRASE_INVENTADA_DE_EJEMPLO}}"</div>
+      <h3>{{NOMBRE_DEL_HUECO}}</h3>
+      <p>{{QUE_ES}} <span class="cuenta">0 de {{N_CREATIVOS}}.</span></p>
+    </div>
+    <div class="hueco">
+      <div class="muestra">"{{FRASE_INVENTADA_DE_EJEMPLO}}"</div>
+      <h3>{{NOMBRE_DEL_HUECO}}</h3>
+      <p>{{QUE_ES}} <span class="cuenta">0 de {{N_CREATIVOS}}.</span></p>
+    </div>
+    <div class="hueco">
+      <div class="muestra">"{{FRASE_INVENTADA_DE_EJEMPLO}}"</div>
+      <h3>{{NOMBRE_DEL_HUECO}}</h3>
+      <p>{{QUE_ES}} <span class="cuenta">0 de {{N_CREATIVOS}}.</span></p>
+    </div>
+  </div>
+  <div class="pie">
+    <span>Francisco Val</span>
+    <span>La publicidad de la competencia de {{EMPRESA}}</span>
+    <span><a href="https://www.linkedin.com/in/franciscoval"><b>linkedin.com/in/franciscoval</b></a></span>
+  </div>
+</div>
+
+<!-- ═══ PÁGINA 4 · LÍMITES Y ADVERTENCIAS ═══ -->
+<div class="pagina">
+  <div class="seccion"><div class="numeral">5</div><div class="cuerpo">
+    <div class="kicker">Límites</div>
+    <h2>Lo que este informe <em class="acc">no dice</em></h2>
+  </div></div>
+  <!-- Esta sección es FIJA salvo la última viñeta. Es la honestidad del sistema. -->
+  <ul>
+    <li><b>No dice qué anuncio convierte.</b> Meta no publica el rendimiento de los
+        anuncios comerciales; nadie que mire datos públicos lo sabe. Los días de vida
+        priorizan qué mirar, nada más.</li>
+    <li><b>No dice cuánto gasta cada competidor.</b> Estimar el presupuesto contando
+        anuncios engaña: los presupuestos chicos publican muchas piezas segmentadas y
+        los grandes pocas piezas masivas.</li>
+    <li>No incluye la publicidad de {{EMPRESA}} (no era parte de esta corrida).</li>
+  </ul>
+
+  <div class="seccion"><div class="numeral">6</div><div class="cuerpo">
+    <div class="kicker">Honestidad de la corrida</div>
+    <h2>Advertencias y <em class="acc">próxima corrida</em></h2>
+  </div></div>
+  <div class="caja alerta">
+    <div class="rotulo">Advertencia de muestra</div>
+    <p><b>n = {{N_CREATIVOS}} creativos: {{si n<30: "todo lo anterior es indicio, nada
+    es conclusión"}}.</b> {{Qué se negó a reportar la calculadora y por qué eso es
+    correcto.}}</p>
+  </div>
+  <ul>
+    <!-- Una viñeta por advertencia real de la corrida: competidores sin anuncios (con
+         la guardia aplicada), no capturables, homónimos descartados y cuántos, y
+         SIEMPRE esta última sobre la primera corrida si aplica: -->
+    <li>{{ADVERTENCIA}}</li>
+    <li>Primera corrida: la antigüedad viene de la fecha que reporta Meta, que se
+        reinicia al duplicar. Desde la segunda corrida manda la serie propia.</li>
+  </ul>
+  <div class="pie">
+    <span>Francisco Val</span>
+    <span>La publicidad de la competencia de {{EMPRESA}}</span>
+    <span><a href="https://www.linkedin.com/in/franciscoval"><b>linkedin.com/in/franciscoval</b></a></span>
+  </div>
+</div>
+
+<!-- ═══ PÁGINA 5 · ANEXO ═══
+     MÁXIMO 4 fichas por página. Con más creativos: duplicar la página de
+     continuación (la que abre con class="anexo-cont") las veces que haga falta.
+     La última ficha de cada página lleva class="ficha-anuncio ultima-ficha". -->
+<div class="pagina">
+  <div class="seccion"><div class="numeral">A</div><div class="cuerpo">
+    <div class="kicker">Anexo · la base consultable</div>
+    <h2>Los {{N_CREATIVOS}} creativos, <em class="acc">completos</em></h2>
+  </div></div>
+  <p class="metodo">Ordenados del más viejo al más nuevo. Los días corren desde la fecha
+  de inicio que reporta Meta (la mínima entre duplicados). El enlace abre el anuncio real
+  en la Biblioteca de anuncios de Meta; si el anunciante lo apaga, el enlace puede dejar
+  de mostrarlo — otra razón para guardar este anexo.</p>
+
+  <!-- FICHA MODELO: duplicar por cada creativo, texto SIEMPRE completo. -->
+  <div class="ficha-anuncio">
+    <div class="fa-dias"><b>{{DIAS}} <small>días</small></b>
+      <span class="fa-estado">{{Activo|Inactivo}}<br>desde {{DD·MM·AA}}</span></div>
+    <div>
+      <div class="fa-cab"><b>{{ANUNCIANTE}}</b>
+        <span>{{Formato}} · {{Plataformas separadas por ·}} · {{Botón}} ·
+        {{N anuncios o duplicados}}</span></div>
+      <p class="fa-texto">"{{TEXTO_COMPLETO_DEL_ANUNCIO}}"</p>
+      <div class="fa-enlaces">destino: {{dominio_destino}} &nbsp;·&nbsp;
+        <a href="{{URL_BIBLIOTECA}}">ver el anuncio en la Biblioteca →</a>
+        <!-- opcional: &nbsp;·&nbsp; <span class="fa-nota">{{nota breve}}</span> --></div>
+    </div>
+  </div>
+  <div class="pie">
+    <span>Francisco Val</span>
+    <span>La publicidad de la competencia de {{EMPRESA}}</span>
+    <span><a href="https://www.linkedin.com/in/franciscoval"><b>linkedin.com/in/franciscoval</b></a></span>
+  </div>
+</div>
+
+<!-- ═══ PÁGINA DE CONTINUACIÓN DEL ANEXO (duplicar si hay más de 4 creativos;
+     eliminar si no se usa) ═══ -->
+<div class="pagina">
+  <div class="anexo-cont">Anexo · continuación</div>
+  <!-- más fichas aquí, máximo 4 -->
+  <div class="pie">
+    <span>Francisco Val</span>
+    <span>La publicidad de la competencia de {{EMPRESA}}</span>
+    <span><a href="https://www.linkedin.com/in/franciscoval"><b>linkedin.com/in/franciscoval</b></a></span>
+  </div>
+</div>
+
+<!-- ═══ ÚLTIMA PÁGINA · CIERRE (la firma no se edita) ═══ -->
+<div class="pagina ultima">
+  <div style="padding-top: 30mm">
+  <div class="cierre-kicker">Cierre</div>
+  <div class="cierre-titulo">Este informe mejora solo: cada corrida que guardas es
+  <em class="acc">señal que nadie más tiene</em>.</div>
+  <div class="caja">
+    <div class="rotulo">Cuándo volver a correr</div>
+    <div class="contexto">En {{2 a 4}} semanas · alrededor del {{FECHA_SUGERIDA}}</div>
+    <p>{{QUE_VIGILAR: qué será lo más valioso de ver en la próxima corrida.}} La señal
+    de qué nace y qué muere solo existe si se guarda cada corrida.</p>
+  </div>
+  <div class="capas-cierre">
+    <div style="width:9mm"></div>
+    <div style="width:13mm"></div>
+    <div style="width:17mm;background:var(--oro);border-color:var(--oro)"></div>
+    <div style="width:22mm"></div>
+  </div>
+  <div class="firma">
+    <div class="quien">
+      <b>Francisco Val</b>
+      <span>Construyo sistemas de inteligencia y operación con IA para dueños de negocio.
+      Este informe se generó con un sistema que regalo.</span>
+    </div>
+    <div class="enlace">
+      <a href="https://www.linkedin.com/comm/mynetwork/discovery-see-all?usecase=PEOPLE_FOLLOWS&followMember=franciscoval">sígueme en LinkedIn →
+      <small>linkedin.com/in/franciscoval</small></a>
+    </div>
+  </div>
+  </div>
+  <div class="pie">
+    <span>Francisco Val</span>
+    <span>La publicidad de la competencia de {{EMPRESA}}</span>
+    <span><a href="https://www.linkedin.com/in/franciscoval"><b>linkedin.com/in/franciscoval</b></a></span>
+  </div>
+</div>
+
+</body>
+</html>
