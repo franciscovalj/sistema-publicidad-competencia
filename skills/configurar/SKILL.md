@@ -137,7 +137,10 @@ forma ordenada se usa un servicio llamado Apify. Lo que cuesta, con números:
 
 **Pasos** (Claude te acompaña):
 
-1. Crea tu cuenta en `apify.com` (correo y contraseña, sin tarjeta).
+1. Crea tu cuenta entrando por este enlace: `https://www.apify.com?fpr=kr27nl` (correo y
+   contraseña, sin tarjeta). Transparencia: es un enlace de referido del autor del sistema;
+   a ti no te cambia el precio y a él le deja una comisión si algún día pasas a un plan
+   pagado.
 2. **Fija el tope de gasto ANTES de correr nada:** en la configuración de facturación de tu
    cuenta de Apify hay un límite mensual de uso. Ponlo en el monto que estés dispuesto a
    gastar (con el crédito gratis, US$5 basta). Sin tope, un error de configuración puede

@@ -59,8 +59,10 @@ está rotulado como tal: el destino a la vista antes de partir.
 
 ## Lo que cuesta, dicho de frente
 
-Los anuncios salen de la Biblioteca de Anuncios de Meta (pública) capturados vía Apify:
-cuenta **gratis, sin tarjeta, con US$5 de crédito al mes**. La captura cuesta cerca de
+Los anuncios salen de la Biblioteca de Anuncios de Meta (pública) capturados vía
+[Apify](https://www.apify.com?fpr=kr27nl): cuenta **gratis, sin tarjeta, con US$5 de
+crédito al mes**. (Ese es un enlace de referido: a ti no te cambia el precio y al autor le
+deja una comisión si algún día pasas a un plan pagado.) La captura cuesta cerca de
 US$0,50 por mil anuncios. **Nuestra corrida real de 120 anuncios costó US$0,074** — siete
 centavos. El crédito gratis alcanza para 5-8 competidores todos los meses.
 
