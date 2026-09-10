@@ -1,4 +1,9 @@
 # Lo tuyo se queda contigo: nada de esto debe terminar publicado por accidente.
-configuracion.json
+configuracion-competencia.json
 .env
+datos/
+informes/
+
+# nombres de la version 1.x, por si vienes de ahi
+configuracion.json
 corridas/

@@ -1,32 +1,34 @@
----
-name: analizar-publicidad-competencia
-description: >
-  El sistema operativo de la publicidad de tu competencia. Captura los anuncios que tus
-  competidores están pagando en Facebook e Instagram, los agrupa por creativo real, los
-  clasifica con criterio fijo y arma un informe: qué lleva meses corriendo, qué está en
-  test, qué acaba de aparecer o morir, y qué ángulo no usa nadie. Úsala cada 2-4 semanas.
-license: MIT
-author: Francisco Val
----
+# Analizar: la corrida, cada 2 a 4 semanas
 
-# Analizar la publicidad de tu competencia
+> Este archivo lo lee la skill `publicidad-competencia` cuando la empresa ya está configurada.
+> Si falta `configuracion-competencia.json` o la clave de Apify, primero va `configurar.md`.
+> `<SKILL>` es la carpeta de esta skill, resuelta en el paso 0 del `SKILL.md`.
+
+## Contenidos
+- Paso 0 · ¿Está todo listo para correr?
+- Paso 1 · De dónde salen los datos, y la trampa de la API oficial
+- Paso 2 · Declarar el costo ANTES de correr
+- Paso 3 · Capturar (las tres guardias sobre lo que vuelve)
+- Paso 4 · Clasificar
+- Paso 5 · Calcular y armar el informe en PDF
+- Paso 6 · Decir cuándo volver
+- Las reglas del informe, y lo que el sistema no hace
 
 Este archivo es el instructivo de la corrida. Claude lo sigue completo, en orden. **No hace
 falta que sepas programar**: Claude opera y tú decides.
 
 ## Paso 0 · ¿Está todo listo para correr?
 
-Todas las rutas de este instructivo son relativas a la carpeta del paquete: Claude trabaja
-parado en ella. Y revisa dos cosas antes de partir:
+Se revisan dos cosas antes de partir:
 
-1. Que exista `configuracion.json` con al menos un competidor confirmado.
+1. Que exista `configuracion-competencia.json` con al menos un competidor confirmado.
 2. Que exista la clave de Apify: el archivo `.env` (línea `APIFY_TOKEN=`) o, en Mac, la
    entrada `apify-competencia` del Llavero
    (`security find-generic-password -s apify-competencia -w`, usada por sustitución, jamás
    mostrada en pantalla).
 
-**Si falta cualquiera de las dos, Claude no improvisa: deriva a la skill `configurar` y
-recién después vuelve aquí.** Correr sin configuración produce análisis de competidores no
+**Si falta cualquiera de las dos, Claude no improvisa: lee `<SKILL>/configurar.md` y recién
+después vuelve aquí.** Correr sin configuración produce análisis de competidores no
 confirmados, que es peor que no correr.
 
 ## Paso 1 · De dónde salen los datos (y la trampa a evitar)
@@ -113,7 +115,7 @@ GET https://api.apify.com/v2/datasets/DATASET_ID/items?format=json&token=TU_CLAV
 
 ### Guardar la corrida: el paso que construye el activo
 
-El resultado se convierte a un archivo `corridas/AAAA-MM-DD.csv` (la fecha de hoy), una fila
+El resultado se convierte a un archivo `<carpeta de tu empresa>/datos/AAAA-MM-DD.csv` (la fecha de hoy), una fila
 por anuncio, con estas columnas exactas:
 
 | Columna del CSV | Del resultado del extractor |
@@ -141,9 +143,9 @@ no guardas es señal que no existirá nunca.
 
 ## Paso 4 · Clasificar
 
-1. Claude corre `python3 scripts/huella.py corridas/*.csv --listar-creativos` para
+1. Claude corre `python3 <SKILL>/scripts/huella.py <carpeta>/datos/*.csv --listar-creativos` para
    obtener las creativos únicos (los duplicados ya vienen agrupados).
-2. Clasifica cada una siguiendo **`contrato-de-patrones.md`**, que es la ley: categorías
+2. Clasifica cada una siguiendo **`<SKILL>/contrato-de-patrones.md`**, que es la ley: categorías
    cerradas, desempates definidos, y la regla cero — **cada etiqueta viene de haber leído
    ese anuncio; jamás se deduce ni se completa "por consistencia"**. Lo que no se pudo
    leer se marca `error` y queda fuera.
@@ -160,10 +162,10 @@ en el paquete; Claude solo lo rellena con los datos de la corrida. El flujo, en 
 
 1. **Calcular:**
    ```bash
-   python3 scripts/huella.py corridas/*.csv
+   python3 <SKILL>/scripts/huella.py <carpeta>/datos/*.csv
    ```
-2. **Copiar la plantilla** (`plantilla-informe.html`, que no se toca) a un archivo nuevo:
-   `corridas/informe-AAAA-MM-DD.html`.
+2. **Copiar la plantilla** (`<SKILL>/plantilla-informe.html`, que no se toca) a un archivo nuevo:
+   `<carpeta>/informes/informe-AAAA-MM-DD.html`.
 3. **Rellenar la copia.** Las instrucciones de llenado viven DENTRO de la plantilla, en los
    comentarios: qué va en cada marcador `{{...}}`, cuánto cabe en cada página (una página es
    un bloque cerrado: si algo no cabe, se crea otra página, jamás se deja que se corte), y
@@ -172,7 +174,8 @@ en el paquete; Claude solo lo rellena con los datos de la corrida. El flujo, en 
    del autor no se editan: son parte del sistema.
 4. **Renderizar:**
    ```bash
-   python3 scripts/renderizar_pdf.py corridas/informe-AAAA-MM-DD.html corridas/informe-AAAA-MM-DD.pdf
+   python3 <SKILL>/scripts/renderizar_pdf.py \
+     <carpeta>/informes/informe-AAAA-MM-DD.html <carpeta>/informes/informe-AAAA-MM-DD.pdf
    ```
    El programa encuentra solo el navegador instalado (Chrome, Edge o Chromium, en Mac,
    Windows o Linux) y lo usa en modo silencioso con un perfil temporal, sin tocar las
@@ -224,5 +227,3 @@ murieron sin que los vieras.
   rasparlas de otro lado produce una foto sesgada.
 - **No decide por ti.** Te dice qué está pagando tu competencia y hace cuánto. La decisión
   de qué hacer con eso sigue siendo tuya.
-
-Licencia MIT · Francisco Val

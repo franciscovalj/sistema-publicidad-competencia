@@ -1,0 +1,20 @@
+{
+  "name": "franciscoval",
+  "description": "Sistemas de Francisco Val para duenos de negocio que quieren operar con Claude Code.",
+  "owner": {
+    "name": "Francisco Val",
+    "url": "https://github.com/franciscovalj"
+  },
+  "plugins": [
+    {
+      "name": "sistema-publicidad-competencia",
+      "description": "Analiza la publicidad que tu competencia paga en Facebook e Instagram y arma un informe en PDF.",
+      "source": "./",
+      "version": "2.0.0",
+      "author": { "name": "Francisco Val" },
+      "homepage": "https://github.com/franciscovalj/sistema-publicidad-competencia",
+      "license": "MIT",
+      "keywords": ["publicidad", "competencia", "meta-ads", "espanol"]
+    }
+  ]
+}

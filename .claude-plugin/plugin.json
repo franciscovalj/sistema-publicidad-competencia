@@ -1,0 +1,18 @@
+{
+  "name": "sistema-publicidad-competencia",
+  "description": "Analiza la publicidad que tu competencia paga en Facebook e Instagram y arma un informe en PDF: que lleva meses corriendo, que esta en testeo, que acaba de aparecer o morir, y que angulo no usa nadie.",
+  "version": "2.0.0",
+  "author": { "name": "Francisco Val" },
+  "homepage": "https://github.com/franciscovalj/sistema-publicidad-competencia",
+  "repository": "https://github.com/franciscovalj/sistema-publicidad-competencia",
+  "license": "MIT",
+  "keywords": [
+    "publicidad",
+    "competencia",
+    "meta-ads",
+    "facebook-ads",
+    "inteligencia-competitiva",
+    "espanol",
+    "pyme"
+  ]
+}

@@ -1,29 +1,30 @@
----
-name: configurar-publicidad-competencia
-description: >
-  Configuración inicial del sistema operativo de la publicidad de tu competencia.
-  Corre UNA vez: entiende tu empresa desde tu web, encuentra y confirma competidores
-  contigo, deja guardado el acceso a los datos y escribe la configuración. Úsala la
-  primera vez, o cuando cambien tus competidores.
-license: MIT
-author: Francisco Val
----
+# Configurar: la primera vez, o cuando cambien tus competidores
 
-# Configurar el sistema — la primera vez
+> Este archivo lo lee la skill `publicidad-competencia` cuando todavía no existe
+> `configuracion-competencia.json`, o cuando hay que cambiar los competidores de una empresa que
+> ya lo tiene. El procedimiento de cada corrida está en `analizar.md`.
+> `<SKILL>` es la carpeta de esta skill, resuelta en el paso 0 del `SKILL.md`.
+
+## Contenidos
+- Paso 1 · Entender tu empresa desde tu web (con la guardia de "no pude leer tu sitio")
+- Paso 2 · Mostrarte el perfil, con la fuente de cada dato
+- Paso 3 · Encontrar y confirmar tus competidores (la regla que nunca se salta)
+- Paso 4 · El acceso a los datos, y lo que cuesta
+- Paso 5 · Dejar todo guardado
+- Cuándo volver a correr esto
 
 Este archivo es el instructivo de la configuración inicial. Claude lo sigue conversando
 contigo. **No hace falta que sepas programar**: tú respondes preguntas sobre tu negocio,
 Claude hace el resto.
 
-Al terminar quedan dos cosas guardadas: `configuracion.json` (tu empresa y tus competidores
-confirmados) y tu clave de acceso a los datos (aparte, ver el paso 4). Con eso, la skill
-`analizar` puede correr todas las veces que quieras.
+Al terminar quedan dos cosas guardadas: `configuracion-competencia.json` (tu empresa y tus competidores
+confirmados) y tu clave de acceso a los datos (aparte, ver el paso 4). Con eso, el análisis puede correr todas las veces que quieras.
 
-Todas las rutas de este instructivo son relativas a la carpeta del paquete: Claude trabaja
-parado en ella.
+Las rutas a los archivos de apoyo se escriben `<SKILL>/...`, con `<SKILL>` resuelto en el paso 0
+del `SKILL.md`. Las salidas van a la carpeta de la empresa.
 
-**Antes de partir, Claude revisa si ya existe `configuracion.json` en esta carpeta.** Si
-existe, no se parte de cero: se muestra lo que hay y se pregunta qué cambiar.
+**El `SKILL.md` ya revisó si existe configuración antes de mandarte aquí.** Si existe y el
+usuario vino a cambiar competidores, se salta al paso 3 y no se rehace el perfil.
 
 ---
 
@@ -159,13 +160,13 @@ forma ordenada se usa un servicio llamado Apify. Lo que cuesta, con números:
      y lo lee después sin mostrarlo. En Windows y Linux esta opción no existe: se usa el
      `.env`.
 
-⛔ **La clave jamás se escribe en `configuracion.json`** ni en ningún archivo que pueda
+⛔ **La clave jamás se escribe en `configuracion-competencia.json`** ni en ningún archivo que pueda
 terminar compartido. Y Claude jamás la muestra en pantalla: la usa por sustitución en el
 momento de llamar a la API.
 
 ## Paso 5 · Dejar todo guardado
 
-Claude escribe `configuracion.json` en esta carpeta, con esta forma:
+Claude escribe `configuracion-competencia.json` en esta carpeta, con esta forma:
 
 ```json
 {
@@ -189,12 +190,12 @@ Claude escribe `configuracion.json` en esta carpeta, con esta forma:
 ```
 
 (`que_vende_valores` son las categorías de TU rubro para clasificar los anuncios; se definen
-aquí, de una vez, siguiendo `contrato-de-patrones.md`.)
+aquí, de una vez, siguiendo `<SKILL>/contrato-de-patrones.md`.)
 
 Y te dice, textual, con qué seguir:
 
-> Listo. La configuración quedó en `configuracion.json` y tu clave quedó guardada aparte.
-> Ahora pídeme "analiza la publicidad de mi competencia" y corre la skill `analizar`.
+> Listo. La configuración quedó en `configuracion-competencia.json` y tu clave quedó guardada aparte.
+> Ahora pídeme "analiza la publicidad de mi competencia".
 
 ---
 
@@ -203,5 +204,3 @@ Y te dice, textual, con qué seguir:
 - Cuando agregues o saques un competidor.
 - Cuando cambies la línea de negocio que analizas.
 - Si cambias de computador (la clave de Apify hay que guardarla de nuevo).
-
-Licencia MIT · Francisco Val

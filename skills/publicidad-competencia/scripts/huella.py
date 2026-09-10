@@ -19,10 +19,10 @@ y un anuncio malo con tope de costo puede seguir "activo" gastando casi nada.
 
 USO
 ---
-    python3 huella.py corridas/2026-08-09.csv
-    python3 huella.py corridas/*.csv              (2+ corridas activan el radar de cambios)
-    python3 huella.py corridas/*.csv --listar-creativos
-    python3 huella.py corridas/*.csv --evergreen-dias 60
+    python3 huella.py datos/2026-08-09.csv
+    python3 huella.py datos/*.csv                 (2+ corridas activan el radar de cambios)
+    python3 huella.py datos/*.csv --listar-creativos
+    python3 huella.py datos/*.csv --evergreen-dias 60
 
 El CSV necesita al menos estas columnas (una fila por anuncio, ver el instructivo):
     fecha_captura, anunciante, texto, fecha_inicio
@@ -298,7 +298,7 @@ def imprimir_patrones(creas):
 def main():
     ap = argparse.ArgumentParser(
         description="Mide qué está pagando tu competencia en Meta, por creativo único.")
-    ap.add_argument("csv", nargs="+", help="una o más corridas (corridas/*.csv)")
+    ap.add_argument("csv", nargs="+", help="una o más corridas (datos/*.csv)")
     ap.add_argument("--evergreen-dias", type=int, default=EVERGREEN_DIAS,
                     help=f"umbral de días para la tabla de veteranos (por defecto {EVERGREEN_DIAS})")
     ap.add_argument("--listar-creativos", action="store_true",

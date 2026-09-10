@@ -13,19 +13,32 @@ con criterio fijo, calcula y arma el informe.
 
 ---
 
-## Cómo se usa
+## Cómo se instala
 
-Necesitas **Claude Code** (el agente de Anthropic que puede leer archivos y ejecutar
-programas en tu computador), Python 3 (viene instalado en Mac y Linux; en Windows se
-instala gratis desde python.org, y Claude te acompaña si hace falta) y un navegador
-(Chrome, Edge o Chromium: el que ya tienes sirve; se usa en silencio para producir el PDF
-del informe, sin tocar tus ventanas).
+Necesitas **Claude Code** (el agente de Anthropic que puede leer archivos y ejecutar programas en
+tu computador), Python 3 (viene instalado en Mac y Linux; en Windows se instala gratis desde
+python.org, y Claude te acompaña si hace falta) y un navegador (Chrome, Edge o Chromium: el que
+ya tienes sirve; se usa en silencio para producir el PDF, sin tocar tus ventanas).
 
-1. Deja esta carpeta completa en tu computador.
-2. Abre Claude Code en la carpeta y dile: **"configura el análisis de mi competencia"**
-   (sigue `skills/configurar/SKILL.md`). Se hace una sola vez.
-3. Después, cada 2-4 semanas: **"analiza la publicidad de mi competencia"**
-   (sigue `skills/analizar/SKILL.md`).
+**La forma rápida, dos comandos dentro de Claude Code:**
+
+```
+/plugin marketplace add franciscovalj/sistema-publicidad-competencia
+/plugin install sistema-publicidad-competencia@franciscoval
+```
+
+**Si prefieres el archivo**, o quieres revisar el código antes de instalarlo (buena idea, ver
+más abajo): [baja el ZIP](https://github.com/franciscovalj/sistema-publicidad-competencia/releases/latest/download/sistema-publicidad-competencia.zip),
+descomprímelo y abre Claude Code dentro de la carpeta. También puedes copiar
+`skills/publicidad-competencia/` a la carpeta `.claude/skills/` de tu proyecto.
+
+**Y después, sea cual sea la vía**, le dices a Claude:
+
+> **"analiza la publicidad de mi competencia"**
+
+La primera vez configura (tu empresa, tus competidores, tu acceso a los datos) y después analiza.
+No hay dos comandos que elegir: el sistema mira si ya estás configurado y hace lo que toca.
+Después, cada 2 a 4 semanas, la misma frase.
 
 ### Pruébalo en 10 segundos, sin configurar nada
 
@@ -47,15 +60,17 @@ está rotulado como tal: el destino a la vista antes de partir.
 
 | Archivo | Qué es |
 |---|---|
-| `skills/configurar/SKILL.md` | El instructivo de la primera vez: tu empresa, tus competidores, tu acceso. |
-| `skills/analizar/SKILL.md` | El instructivo de cada corrida: capturar, clasificar, calcular, informar. |
-| `scripts/huella.py` | La calculadora. Agrupa por creativo real y mide contra tu propia serie. |
-| `plantilla-informe.html` | El diseño del informe, congelado. Claude lo rellena con tus datos; portada, gráficas, anexo y paginación ya vienen resueltos. |
-| `scripts/renderizar_pdf.py` | Convierte el informe en PDF con el navegador que ya tienes, en cualquier sistema. |
-| `contrato-de-patrones.md` | Las categorías con las que se clasifica, cerradas y con desempates. |
-| `informe-ejemplo.md` | El contenido de un informe, con **datos inventados**, para ver el destino antes de partir. El diseño final lo pone la plantilla. |
+| `skills/publicidad-competencia/SKILL.md` | El enrutador: mira si ya estás configurado y decide qué toca. |
+| `skills/publicidad-competencia/configurar.md` | La primera vez: tu empresa, tus competidores, tu acceso. |
+| `skills/publicidad-competencia/analizar.md` | Cada corrida: capturar, clasificar, calcular, informar. |
+| `skills/publicidad-competencia/scripts/huella.py` | La calculadora. Agrupa por creativo real y mide contra tu propia serie. |
+| `skills/publicidad-competencia/plantilla-informe.html` | El diseño del informe, congelado. Claude lo rellena; portada, gráficas, anexo y paginación ya vienen resueltos. |
+| `skills/publicidad-competencia/scripts/renderizar_pdf.py` | Convierte el informe en PDF con el navegador que ya tienes, en cualquier sistema. |
+| `skills/publicidad-competencia/contrato-de-patrones.md` | Las categorías con las que se clasifica, cerradas y con desempates. |
+| `.claude-plugin/` | Los manifiestos que hacen que `/plugin install` funcione. |
+| `informe-ejemplo.md` | El contenido de un informe, con **datos inventados**, para ver el destino antes de partir. |
 | `corridas-ejemplo/` | Dos corridas inventadas para probar la calculadora sin gastar. |
-| `.gitignore` | Impide publicar por accidente tu configuración, tu clave y tus corridas. |
+| `.gitignore` | Impide publicar por accidente tu configuración, tu clave y tus datos. |
 
 ## Lo que cuesta, dicho de frente
 
@@ -89,6 +104,28 @@ centavos. El crédito gratis alcanza para 5-8 competidores todos los meses.
   sigue siendo tuya.
 - **No trae datos ni conclusiones de ningún rubro.** Trae el método. Las conclusiones salen
   cuando lo corres sobre TUS competidores.
+
+## Antes de instalarlo: qué hace y qué permisos pide
+
+Instalar una skill es como instalar software: **revísala antes.** Esto es lo que hace la de aquí,
+para que puedas contrastarlo con el código.
+
+- **Ejecuta dos programas de Python** que vienen en el paquete: `huella.py` (calcula, no manda
+  nada a ninguna parte) y `renderizar_pdf.py` (abre tu navegador en modo silencioso, con un
+  perfil temporal propio, para producir el PDF).
+- **Sale a internet a tres lugares y nada más:** tu propio sitio web y el de los competidores que
+  tú confirmes (para leerlos), buscadores (para proponer candidatos), y la API de Apify (para
+  capturar los anuncios).
+- **Te pide un token de Apify**, que es tuyo y gasta tu crédito. El sistema **nunca** lo escribe
+  en la configuración ni lo muestra en pantalla: lo lee de tu `.env` o de tu Llavero en el
+  momento de usarlo. El `.gitignore` incluido impide que se publique por accidente.
+- **No declara `allowed-tools`**, o sea no se auto-otorga ningún permiso: usa los que tú ya le
+  diste a Claude Code, y cada acción pasa por tus reglas.
+- **No manda tus datos a ninguna parte.** Tu configuración, tu clave y tus corridas se quedan en
+  tu computador.
+
+Si quieres fijar exactamente el código que revisaste en vez de seguir la última versión, instala
+apuntando a un commit concreto con el campo `sha` en tu propio `marketplace.json`.
 
 ## Tu información
 
