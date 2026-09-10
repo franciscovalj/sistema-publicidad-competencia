@@ -1,0 +1,70 @@
+name: Validar
+
+# Revisa que el paquete siga bien armado en cada cambio: que los manifiestos sean
+# validos, que la calculadora corra, y que no se haya colado una clave.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  estructura:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+
+      # Con los dos manifiestos presentes, `validate` sobre el directorio revisa
+      # SOLO el marketplace. Por eso el plugin se valida apuntandole al archivo.
+      - name: Validar el marketplace
+        run: claude plugin validate . --strict
+
+      - name: Validar el plugin
+        run: claude plugin validate .claude-plugin/plugin.json --strict
+
+  calculadora:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Sin dependencias a proposito: solo biblioteca estandar.
+      - name: Correr sobre las corridas de ejemplo
+        run: |
+          python3 skills/publicidad-competencia/scripts/huella.py corridas-ejemplo/*.csv
+
+      - name: Correr el listado de creativos
+        run: |
+          python3 skills/publicidad-competencia/scripts/huella.py \
+            corridas-ejemplo/*.csv --listar-creativos
+
+  secretos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Una clave de Apify empieza con apify_api_. Que nunca se publique una por
+      # accidente, ni siquiera en un ejemplo.
+      - name: Que no haya una clave de Apify en el arbol
+        run: |
+          if grep -rIn --exclude-dir=.git -E 'apify_api_[A-Za-z0-9]{10,}' .; then
+            echo "::error::Hay algo con forma de clave de Apify en el repositorio."
+            exit 1
+          fi
+          echo "Sin claves a la vista."
+
+      - name: Que los archivos privados sigan ignorados
+        run: |
+          for f in configuracion-competencia.json .env; do
+            if ! git check-ignore -q "$f"; then
+              echo "::error::$f no esta en .gitignore"
+              exit 1
+            fi
+          done
+          echo "Los archivos privados siguen protegidos."

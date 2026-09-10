@@ -68,6 +68,7 @@ está rotulado como tal: el destino a la vista antes de partir.
 | `skills/publicidad-competencia/scripts/renderizar_pdf.py` | Convierte el informe en PDF con el navegador que ya tienes, en cualquier sistema. |
 | `skills/publicidad-competencia/contrato-de-patrones.md` | Las categorías con las que se clasifica, cerradas y con desempates. |
 | `.claude-plugin/` | Los manifiestos que hacen que `/plugin install` funcione. |
+| `CHANGELOG.md` | Qué cambió en cada versión, y cómo migrar si vienes de la 1.0. |
 | `informe-ejemplo.md` | El contenido de un informe, con **datos inventados**, para ver el destino antes de partir. |
 | `corridas-ejemplo/` | Dos corridas inventadas para probar la calculadora sin gastar. |
 | `.gitignore` | Impide publicar por accidente tu configuración, tu clave y tus datos. |
