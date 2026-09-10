@@ -29,8 +29,10 @@ ya tienes sirve; se usa en silencio para producir el PDF, sin tocar tus ventanas
 
 **Si prefieres el archivo**, o quieres revisar el código antes de instalarlo (buena idea, ver
 más abajo): [baja el ZIP](https://github.com/franciscovalj/sistema-publicidad-competencia/releases/latest/download/sistema-publicidad-competencia.zip),
-descomprímelo y abre Claude Code dentro de la carpeta. También puedes copiar
-`skills/publicidad-competencia/` a la carpeta `.claude/skills/` de tu proyecto.
+descomprímelo y **copia la carpeta `skills/publicidad-competencia/` dentro de
+`.claude/skills/` de tu proyecto**. Ese paso es el que hace que Claude la reconozca:
+si solo abres Claude Code dentro de la carpeta descomprimida, la skill no queda
+registrada.
 
 **Y después, sea cual sea la vía**, le dices a Claude:
 
