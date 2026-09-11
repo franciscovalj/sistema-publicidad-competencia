@@ -10,7 +10,7 @@
       "name": "sistema-publicidad-competencia",
       "description": "Analiza la publicidad que tu competencia paga en Facebook e Instagram y arma un informe en PDF.",
       "source": "./",
-      "version": "2.0.0",
+      "version": "2.0.1",
       "author": { "name": "Francisco Val" },
       "homepage": "https://github.com/franciscovalj/sistema-publicidad-competencia",
       "license": "MIT",

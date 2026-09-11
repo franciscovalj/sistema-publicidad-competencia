@@ -5,6 +5,26 @@ Este sistema usa [versionado semántico](https://semver.org/lang/es/).
 
 ---
 
+## [2.0.1] · 2026-09-11
+
+Corrección de seguridad en cómo se le pide a Claude que hable con Apify.
+
+### Corregido
+
+- **La clave de Apify viaja ahora en la cabecera `Authorization: Bearer`**, no como parámetro
+  de la dirección. La documentación de Apify marca esa segunda forma como *"Less secure"*,
+  porque una dirección queda escrita en los registros del servidor y del proxy; el RFC 6750
+  §2.3 dice que no debe usarse cuando la cabecera es posible. Afecta las tres llamadas del
+  procedimiento de análisis.
+- **El README ya no promete que basta con abrir Claude Code dentro de la carpeta
+  descomprimida.** No basta: Claude Code registra las skills desde `.claude/skills/`, así que
+  hay que copiar la carpeta ahí. Comprobado en una instalación limpia.
+
+### Por qué sube la versión y no solo se reemplaza el archivo
+
+Claude Code solo entrega actualizaciones cuando cambia el campo `version` del manifiesto. Con
+la 2.0.0 congelada, quien ya lo tuviera instalado no recibiría nunca esta corrección.
+
 ## [2.0.0] · 2026-09-10
 
 Reestructuración completa contra el estándar de skills de Anthropic. **Si vienes de la 1.0,
