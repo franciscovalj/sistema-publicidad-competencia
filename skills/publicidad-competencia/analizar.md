@@ -76,20 +76,30 @@ decisiones de diseño que salen de pruebas reales, no de la documentación:
 - **La corrida se lanza asíncrona.** La vía síncrona corta a los ~300 segundos y una corrida
   de varios competidores no alcanza.
 
+**La clave va SIEMPRE en la cabecera, nunca dentro de la dirección.**
+
 ```
 1. Lanzar:
-POST https://api.apify.com/v2/acts/automation-lab~facebook-ads-library/runs?timeout=1500&token=TU_CLAVE
+POST https://api.apify.com/v2/acts/automation-lab~facebook-ads-library/runs?timeout=1500
+   Cabecera: Authorization: Bearer LA_CLAVE
 { "searchQueries": ["Nombre Uno", "Nombre Dos"], "country": "CL",
   "activeStatus": "active", "maxAds": 50 }
    → anotar del resultado el `id` de la corrida y el `defaultDatasetId`.
 
 2. Esperar: consultar cada 30 segundos
-GET https://api.apify.com/v2/actor-runs/ID?token=TU_CLAVE
+GET https://api.apify.com/v2/actor-runs/ID
+   Cabecera: Authorization: Bearer LA_CLAVE
    hasta que `status` deje de ser RUNNING/READY.
 
 3. Descargar:
-GET https://api.apify.com/v2/datasets/DATASET_ID/items?format=json&token=TU_CLAVE
+GET https://api.apify.com/v2/datasets/DATASET_ID/items?format=json
+   Cabecera: Authorization: Bearer LA_CLAVE
 ```
+
+⛔ **La clave nunca va como parámetro de la dirección.** La documentación de Apify marca esa
+forma como *"Less secure"*, porque una dirección queda escrita en los registros del servidor y
+del proxy; el RFC 6750 §2.3 dice que no debe usarse cuando la cabecera es posible. Corregido
+el 2026-09-10.
 
 - `country` sale de la configuración (el país de TU mercado, no el de la casa matriz del
   competidor).
