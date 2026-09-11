@@ -5,6 +5,34 @@ Este sistema usa [versionado semántico](https://semver.org/lang/es/).
 
 ---
 
+## [2.0.2] · 2026-09-11
+
+El programa que arma el PDF declaraba fallido un informe que estaba bien.
+
+### Corregido
+
+- **Un informe corto ya no se declara fallido.** La comprobación de "el PDF está listo" medía
+  el tamaño del archivo y exigía más de 20.000 bytes. Un informe con pocos competidores pesa
+  menos, así que el programa esperaba 90 segundos a que creciera y después decía *"El PDF no se
+  generó o quedó vacío"* sobre un PDF perfectamente válido. Ahora comprueba lo que de verdad
+  define un PDF terminado: que empiece por `%PDF`, que traiga su marca de cierre `%%EOF`, y que
+  no cambie de tamaño entre dos lecturas seguidas.
+
+  Medido antes y después, en el mismo computador:
+
+  | Informe | Antes | Ahora |
+  |---|---|---|
+  | corto (1 página, 15 KB) | 90,8 s y error | **3,2 s y listo** |
+  | largo (12 páginas, 418 KB) | — | **3 s y listo** |
+
+- **El navegador se cierra completo, y también si cortas el programa.** Antes se cerraba solo el
+  proceso principal, y los procesos hijos del navegador sobreviven al principal. Ahora el
+  navegador nace en su propio grupo y se cierra el grupo entero, y la limpieza ocurre aunque
+  interrumpas con Ctrl+C. Comprobado: 8 procesos nacidos, 0 sobrevivientes tras el corte.
+
+Sigue intacto lo que ya estaba bien: el navegador corre con un perfil temporal propio y **nunca**
+se cierra por nombre, que apagaría el navegador que tengas abierto con tus pestañas.
+
 ## [2.0.1] · 2026-09-11
 
 Corrección de seguridad en cómo se le pide a Claude que hable con Apify.
