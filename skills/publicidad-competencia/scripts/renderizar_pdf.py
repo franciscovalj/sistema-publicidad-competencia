@@ -16,6 +16,11 @@ instalar Chrome (gratis) o abrir el HTML y usar Imprimir → Guardar como PDF.
 Las decisiones de este programa vienen de errores reales cometidos al construirlo:
 - El perfil temporal aislado evita chocar con tu navegador abierto.
 - La espera activa existe porque el navegador a veces no avisa cuándo terminó de escribir.
+- Se comprueba que el PDF esté COMPLETO (%PDF, %%EOF y tamaño estable), no que pese
+  más de X: un informe corto pesa poco y se declaraba fallido estando bien.
+- El navegador nace en su propio grupo de procesos y se cierra el grupo entero, porque
+  los hijos de Chromium sobreviven al padre. La limpieza va en un finally, para que
+  ocurra también si cortan el programa a mitad.
 - El presupuesto de tiempo virtual le da aire para descargar las tipografías del informe.
 - Solo se cierra el proceso exacto que abrimos, jamás "todos los Chrome".
 
@@ -24,11 +29,61 @@ Licencia MIT · Francisco Val
 
 import os
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
 import time
 from pathlib import Path
+
+
+def _pdf_completo(pdf, tamano_anterior):
+    """¿El PDF está entero? Devuelve (listo, tamaño para la próxima vuelta).
+
+    Antes esto medía "¿pesa más de 20.000 bytes?", y un informe corto pesa menos:
+    el programa declaraba fallido un PDF perfectamente bueno y además esperaba
+    los 90 segundos completos antes de decirlo. Ahora se comprueba lo que de
+    verdad define un PDF terminado: que empiece por %PDF, que traiga su marca de
+    cierre %%EOF, y que no haya cambiado de tamaño entre dos lecturas seguidas
+    (el navegador escribe el archivo de a poco y no siempre avisa que terminó).
+    """
+    if not os.path.exists(pdf):
+        return False, -1
+    tamano = os.path.getsize(pdf)
+    if tamano < 1000 or tamano != tamano_anterior:
+        return False, tamano          # todavía creciendo, o recién aparecido
+    with open(pdf, "rb") as f:
+        cabeza = f.read(5)
+        f.seek(max(0, tamano - 2048))
+        cola = f.read()
+    return cabeza.startswith(b"%PDF") and b"%%EOF" in cola, tamano
+
+
+def _cerrar_navegador(proceso):
+    """Cierra el navegador que abrimos, con sus hijos, y SOLO ese.
+
+    Nunca por nombre: matar "todos los Chrome" cerraría el navegador real del
+    usuario con sus pestañas abiertas.
+    """
+    if proceso.poll() is not None:
+        return
+    try:
+        if os.name == "posix":
+            os.killpg(os.getpgid(proceso.pid), signal.SIGTERM)
+        else:
+            proceso.terminate()
+    except (ProcessLookupError, PermissionError, OSError):
+        proceso.terminate()
+    try:
+        proceso.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        try:
+            if os.name == "posix":
+                os.killpg(os.getpgid(proceso.pid), signal.SIGKILL)
+            else:
+                proceso.kill()
+        except (ProcessLookupError, PermissionError, OSError):
+            pass
 
 
 def encontrar_navegador():
@@ -88,29 +143,37 @@ def main():
 
     # Path.as_uri() arma la URL correcta en cualquier sistema (en Windows,
     # "file://C:\..." a mano es inválida y produce un PDF vacío)
+    #
+    # start_new_session pone al navegador en su PROPIO grupo de procesos. Hace
+    # falta porque los hijos de Chromium sobreviven a su padre: cerrar solo el
+    # padre deja procesos vivos que nadie va a limpiar.
+    extra = {"start_new_session": True} if os.name == "posix" else {}
     proceso = subprocess.Popen(
         [navegador, "--headless", f"--user-data-dir={perfil}",
          "--no-pdf-header-footer", "--virtual-time-budget=10000",
          f"--print-to-pdf={pdf}", Path(html).as_uri()],
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, **extra
     )
 
-    # esperar a que el PDF exista y pese; el navegador no siempre avisa que terminó
-    for _ in range(90):
-        if os.path.exists(pdf) and os.path.getsize(pdf) > 20000:
+    # El try/finally existe para que la limpieza ocurra aunque esto falle o lo
+    # corten con Ctrl+C. Sin él, un corte a mitad deja el navegador corriendo.
+    try:
+        anterior = -1
+        for _ in range(90):
             time.sleep(1)
-            break
-        time.sleep(1)
+            listo, anterior = _pdf_completo(pdf, anterior)
+            if listo:
+                break
+    finally:
+        _cerrar_navegador(proceso)
+        shutil.rmtree(perfil, ignore_errors=True)
 
-    if proceso.poll() is None:
-        proceso.terminate()   # SOLO este proceso, jamás el navegador del usuario
-    shutil.rmtree(perfil, ignore_errors=True)
-
-    if not os.path.exists(pdf) or os.path.getsize(pdf) < 20000:
+    listo, _ = _pdf_completo(pdf, os.path.getsize(pdf) if os.path.exists(pdf) else -1)
+    if not listo:
         sys.exit(
-            "El PDF no se generó o quedó vacío. Casi siempre es una ruta con error en el\n"
-            "HTML o un navegador demasiado antiguo. Prueba la vía manual: abre el HTML,\n"
-            "Imprimir, 'Guardar como PDF', márgenes 'Ninguno', 'Gráficos de fondo' activado."
+            "El PDF no se generó o quedó incompleto. Casi siempre es una ruta con error\n"
+            "en el HTML o un navegador demasiado antiguo. Prueba la vía manual: abre el\n"
+            "HTML, Imprimir, 'Guardar como PDF', márgenes 'Ninguno', 'Gráficos de fondo'."
         )
 
     with open(pdf, "rb") as f:
